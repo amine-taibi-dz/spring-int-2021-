@@ -1,0 +1,1 @@
+C:\tools\Java\jdk1.8.0_201\bin\wsimport.exe -keep -p dz.acs.ws.client http://localhost:9000/holiday/HolidayFrontService?wsdl

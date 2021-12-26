@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Published by JAX-WS RI (http://jax-ws.java.net). RI's version is JAX-WS RI 2.2.9-b130926.1035 svn-revision#5f6196f2b90e9460065a4c2f4e30e065b245e51e. --><xs:schema xmlns:tns="http://ws.acs.dz/" xmlns:xs="http://www.w3.org/2001/XMLSchema" version="1.0" targetNamespace="http://ws.acs.dz/">
+
+<xs:element name="ask" type="tns:ask"></xs:element>
+
+<xs:element name="askResponse" type="tns:askResponse"></xs:element>
+
+<xs:element name="holidayRequest" type="tns:HolidayRequest"></xs:element>
+
+<xs:element name="holidayResponse" type="tns:HolidayResponse"></xs:element>
+
+<xs:complexType name="ask">
+<xs:sequence>
+<xs:element name="arg0" type="tns:HolidayRequest" minOccurs="0"></xs:element>
+</xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="HolidayRequest">
+<xs:sequence>
+<xs:element name="employee" type="tns:Employee" minOccurs="0"></xs:element>
+<xs:element name="holiday" type="tns:Holiday" minOccurs="0"></xs:element>
+</xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="Employee">
+<xs:sequence>
+<xs:element name="firstName" type="xs:string" minOccurs="0"></xs:element>
+<xs:element name="lastName" type="xs:string" minOccurs="0"></xs:element>
+<xs:element name="number" type="xs:long"></xs:element>
+</xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="Holiday">
+<xs:sequence>
+<xs:element name="endDate" type="xs:dateTime" minOccurs="0"></xs:element>
+<xs:element name="startDate" type="xs:dateTime" minOccurs="0"></xs:element>
+</xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="askResponse">
+<xs:sequence>
+<xs:element name="return" type="tns:HolidayResponse" minOccurs="0"></xs:element>
+</xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="HolidayResponse">
+<xs:sequence>
+<xs:element name="employee" type="tns:Employee" minOccurs="0"></xs:element>
+<xs:element name="holiday" type="tns:Holiday" minOccurs="0"></xs:element>
+<xs:element name="state" type="xs:boolean"></xs:element>
+</xs:sequence>
+</xs:complexType>
+</xs:schema>
