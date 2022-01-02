@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:file="http://www.springframework.org/schema/integration/file"
+	xmlns:jpa="http://www.springframework.org/schema/integration/jpa"
+	xmlns:ftp="http://www.springframework.org/schema/integration/ftp"
+	xmlns:int-jdbc="http://www.springframework.org/schema/integration/jdbc"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			https://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/jdbc 
+			https://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+			http://www.springframework.org/schema/integration
+			https://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/task 
+            http://www.springframework.org/schema/task/spring-task.xsd
+			http://www.springframework.org/schema/integration/jdbc
+			https://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd
+			http://www.springframework.org/schema/integration/file
+			https://www.springframework.org/schema/integration/file/spring-integration-file.xsd
+			http://www.springframework.org/schema/integration/ftp
+			https://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd
+			http://www.springframework.org/schema/integration/jpa
+			https://www.springframework.org/schema/integration/jpa/spring-integration-jpa.xsd"
+	default-autowire="default">
+	
+<!-- 	<context:property-placeholder location="classpath:ftp.properties"/> -->
+
+	<bean id="ftpClientFactory" class="org.springframework.integration.ftp.session.DefaultFtpSessionFactory">
+	    <property name="clientMode"  value="2"/>
+	    <property name="connectTimeout"  value="600000"/>
+		<property name="host" value="${ftp.host}"/>
+		<property name="port" value="${ftp.availableServerPort}"/>
+		<property name="username" value="${ftp.userid}"/>
+		<property name="password" value="${ftp.password}"/>
+	</bean>
+	
+
+	<ftp:inbound-channel-adapter id="ftpInbound"
+				channel="fileMessages"
+				filename-regex="^VIR_AP_.*\.txt$"
+				session-factory="ftpClientFactory"
+				auto-create-local-directory="true"
+				delete-remote-files="false"
+				remote-directory="/ftp/demo"
+				local-directory="${ftp.local.dir}/ftpInbound">
+			
+		<int:poller fixed-rate="1000"/> 
+	
+	</ftp:inbound-channel-adapter>
+
+<!-- 	<file:inbound-channel-adapter -->
+<!-- 		auto-create-directory="true" id="filesIn" -->
+<!-- 		filename-regex="^${files.prefix}.*\.(${files.ext})$" -->
+<!-- 		directory="file:${files.path.input}" channel="fileMessages"> -->
+<!-- 		<int:poller id="poller1" fixed-delay="1000" -->
+<!-- 			task-executor="executor" /> -->
+<!-- 	</file:inbound-channel-adapter> -->
+
+	<int:channel id="fileMessages"/>
+
+	<file:file-to-string-transformer
+		charset="UTF-8" delete-files="true" input-channel="fileMessages"
+		output-channel="fileStrings">
+	</file:file-to-string-transformer>
+	
+	<int:channel id="fileStrings">
+	</int:channel>
+	
+	<int:splitter input-channel="fileStrings"
+		ref="generateVirementService" method="split"
+		output-channel="virementsLines">
+	</int:splitter>
+
+	<int:channel id="virementsLines"></int:channel>
+
+	<int:filter input-channel="virementsLines"
+		ref="generateVirementService" method="filter"
+		output-channel="filteredVirementsLines" 
+		discard-channel="filteredVirementsCancelLines"/>
+
+
+	<int:channel id="filteredVirementsCancelLines" >		
+	</int:channel>
+	
+	<int:channel id="filteredVirementsLines">
+		<int:queue capacity="4" />
+	</int:channel>
+
+	<int:service-activator  
+		input-channel="filteredVirementsLines" ref="generateVirementService"
+		method="generate" output-channel="outChannel" />
+
+	<int:channel id="outChannel"></int:channel>
+
+	<int-jdbc:outbound-channel-adapter data-source="datasource1"
+		channel="outChannel" 
+		query="INSERT INTO `db1`.`virement`(`nom`,`prenom`,`idContrat`,`numFacture`,`montant`,`dateHeure`,`etat`,`comments`)
+               VALUES(:payload.nom,:payload.prenom,:payload.idContrat,:payload.numFacture,:payload.montant,:payload.dateHeure,:payload.etat,:payload.comments)">
+	</int-jdbc:outbound-channel-adapter>
+	
+	
+	<int:poller id="poller" default="true" fixed-delay="2000"  task-executor="executor" />
+
+	<task:executor id="executor" queue-capacity="5" pool-size="5" />
+	
+	<int:outbound-channel-adapter channel="filteredVirementsCancelLines" ref="generateVirementService" method="outCancel"></int:outbound-channel-adapter>
+	<file:outbound-channel-adapter channel="filteredVirementsCancelLines"  
+					directory="${ftp.local.dir.err}" temporary-file-suffix="err-filter"  
+					filename-generator-expression="headers['id'] + '.txt'" >
+	</file:outbound-channel-adapter>
+</beans>
