@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<students>
+	<Student>
+		<id>100</id>
+		<firstName>Amine</firstName>
+		<lastName>TAIBI</lastName>
+		<email>ataibi100@gmail.com</email>
+	</Student>
+	
+	<Student>
+		<id>200</id>
+		<firstName>Amine2</firstName>
+		<lastName>TAIBI2</lastName>
+		<email>ataibi200@gmail.com</email>
+	</Student>
+	
+	<Student>
+		<id>300</id>
+		<firstName>Amine3</firstName>
+		<lastName>TAIBI3</lastName>
+		<email>ataibi300@gmail.com</email>
+	</Student>
+	
+	<Student>
+		<id>400</id>
+		<firstName>Amine4</firstName>
+		<lastName>TAIBI4</lastName>
+		<email>ataibi400@gmail.com</email>
+	</Student>
+</students>
